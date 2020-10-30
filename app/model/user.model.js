@@ -1,4 +1,6 @@
 const sql = require("../config/database");
+const bcrypt = require("bcryptjs");
+const jwt = require('jsonwebtoken');
 
 // constructor
 const User = function(user) {
@@ -15,82 +17,65 @@ User.create = (newUser, result) => {
       return;
     }
     console.log("created user: ", { id: res.insertId, ...newUser });
-    result(null, { id: 0, ...newUser });
+    result(null, { id: res.insertId, ...newUser });
   });
 };
 
-// User.findById = (customerId, result) => {
-//   sql.query(`SELECT * FROM customers WHERE id = ${customerId}`, (err, res) => {
-//     if (err) {
-//       console.log("error: ", err);
-//       result(err, null);
-//       return;
-//     }
+User.findByEmail = (userData, result) => {
+  sql.query(`SELECT * FROM users WHERE email = "`+userData.email+`"`, (err, res) => {
+    if (err) {
+      console.log("error: ", err);
+      result(err, null);
+      return;
+    }
+    if (res.length) {
+      bcrypt.compare(userData.password.toString(), res[0].password, function(err, hash_status) {
+        if(hash_status) {
+          const accessToken = jwt.sign({ username: userData.email}, process.env.TOKEN_SECRET);
+          result(null, { token: accessToken, ...userData });
+          return;
+        } else {
+          result({ kind: "Password incorrect !!!",status_code: 401 }, null);
+          return;
+        } 
+      });
+    
+    }else{
+      result({ kind: "not_found" }, 401);
 
-//     if (res.length) {
-//       console.log("found customer: ", res[0]);
-//       result(null, res[0]);
-//       return;
-//     }
+    }
+  });
+};
 
-//     // not found Customer with the id
-//     result({ kind: "not_found" }, null);
-//   });
-// };
-
-// User.getAll = result => {
-//   sql.query("SELECT * FROM customers", (err, res) => {
-//     if (err) {
-//       console.log("error: ", err);
-//       result(null, err);
-//       return;
-//     }
-
-//     console.log("customers: ", res);
-//     result(null, res);
-//   });
-// };
-
-// User.updateById = (id, customer, result) => {
-//   sql.query(
-//     "UPDATE customers SET email = ?, name = ?, active = ? WHERE id = ?",
-//     [customer.email, customer.name, customer.active, id],
-//     (err, res) => {
-//       if (err) {
-//         console.log("error: ", err);
-//         result(null, err);
-//         return;
-//       }
-
-//       if (res.affectedRows == 0) {
-//         // not found Customer with the id
-//         result({ kind: "not_found" }, null);
-//         return;
-//       }
-
-//       console.log("updated customer: ", { id: id, ...customer });
-//       result(null, { id: id, ...customer });
-//     }
-//   );
-// };
-
-// User.remove = (id, result) => {
-//   sql.query("DELETE FROM customers WHERE id = ?", id, (err, res) => {
-//     if (err) {
-//       console.log("error: ", err);
-//       result(null, err);
-//       return;
-//     }
-
-//     if (res.affectedRows == 0) {
-//       // not found Customer with the id
-//       result({ kind: "not_found" }, null);
-//       return;
-//     }
-
-//     console.log("deleted customer with id: ", id);
-//     result(null, res);
-//   });
-// };
+User.change_password = (userData, result) => {
+  sql.query(`SELECT * FROM users WHERE email = "`+userData.email+`"`, (err, res) => {
+    if (err) {
+      console.log("error: ", err);
+      result(err, null);
+      return;
+    }
+    if (res.length) {
+      bcrypt.compare(userData.password.toString(), res[0].password, function(err, hash_status) {
+        if(hash_status) {
+          sql.query(`UPDATE users set password ="`+userData.new_password+`" where email = "` +userData.email+ `" `,(err,res) => {
+            if (err) {
+              console.log("error: ", err);
+              result(err, null);
+              return;
+            }
+            result(null, { ...userData });
+          });
+          return;
+        } else {
+          result({ kind: "Password incorrect !!!",status_code: 401 }, null);
+          return;
+        } 
+      });
+    
+    }else{
+      result({ kind: "not_found" }, 401);
+    }
+  });
+};
 
 module.exports = User;
