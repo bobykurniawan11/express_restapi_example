@@ -7,18 +7,14 @@ require("dotenv").config();
 exports.create = (req, res) => {
   if (!req.body) {
     res.status(400).send({
-      status: false,
       message: "Content can not be empty!!!",
-      date: new Date(),
     });
     return;
   }
 
   if (!validator.validate(req.body.email)) {
     res.status(400).send({
-      status: false,
       message: "Invalid email format",
-      date: new Date(),
     });
     return;
   }
@@ -34,10 +30,16 @@ exports.create = (req, res) => {
     });
     User.findByEmail("register", user, (err, data) => {
       if (err) {
-        res.status(500).send({
-          message:
-            err.message || "Some error occurred while creating the User.",
-        });
+        if (err.status_code != null) {
+          res.status(err.status_code).send({
+            message: err.message,
+          });
+        } else {
+          res.status(500).send({
+            message:
+              err.message || "Some error occurred while creating the User.",
+          });
+        }
       } else res.send(data);
     });
   });
@@ -66,7 +68,10 @@ exports.login = (req, res) => {
       res.status(err.status_code || 500).send({
         message: err.kind || "Some error occurred while creating the User.",
       });
-    } else res.send(data);
+    } else {
+      delete data["password"];
+      res.send(data);
+    }
   });
 };
 
@@ -117,11 +122,11 @@ exports.update = (req, res) => {
     if (err) {
       if (err.kind === "not_found") {
         res.status(404).send({
-          message: `Not found User with id ${req.params.customerId}.`,
+          message: `Not found User with id ${req.params.user_id}.`,
         });
       } else {
         res.status(500).send({
-          message: "Error updating User with id " + req.params.customerId,
+          message: "Error updating User with id " + req.params.user_id,
         });
       }
     } else res.send(data);
@@ -133,13 +138,13 @@ exports.delete = (req, res) => {
     if (err) {
       if (err.kind === "not_found") {
         res.status(404).send({
-          message: `Not found User with id ${req.params.customerId}.`,
+          message: `Not found User with id ${req.params.user_id}.`,
         });
       } else {
         res.status(500).send({
-          message: "Could not delete User with id " + req.params.customerId,
+          message: "Could not delete User with id " + req.params.user_id,
         });
       }
-    } else res.send({ message: `Customer was deleted successfully!` });
+    } else res.send({ message: "Success" });
   });
 };

@@ -15,14 +15,13 @@ User.findByEmail = (type, userData, result) => {
     `SELECT * FROM users WHERE email = "` + userData.email + `"`,
     (err, res) => {
       if (err) {
-        console.log("error: ", err);
         result(err, null);
         return;
       }
 
       if (type == "register") {
         if (res.length > 0) {
-          result({ message: "Email already used !!!", status_code: 401 }, null);
+          result({ message: "Email already used !!!", status_code: 403 }, null);
         } else {
           User.create(userData, result);
         }
@@ -40,11 +39,9 @@ User.findByEmail = (type, userData, result) => {
 User.create = (newUser, result) => {
   sql.query("INSERT INTO users SET ?", newUser, (err, res) => {
     if (err) {
-      console.log("error: ", err);
       result(err, null);
       return;
     }
-    console.log("created user: ", { id: res.insertId, ...newUser });
     result(null, { id: res.insertId, ...newUser });
   });
 };
@@ -61,6 +58,7 @@ User.login = (data, res, result) => {
           process.env.TOKEN_SECRET,
           { expiresIn: "60m" }
         );
+        data.user_id = res[0].user_id;
         result(null, { token: accessToken, ...data });
         return;
       } else {
@@ -88,7 +86,6 @@ User.change_password = (userData, res, result) => {
             `" `,
           (err, res) => {
             if (err) {
-              console.log("error: ", err);
               result(err, null);
               return;
             }
@@ -112,7 +109,6 @@ User.updateById = (id, user, result) => {
     [user.fullname, id],
     (err, res) => {
       if (err) {
-        console.log("error: ", err);
         result(null, err);
         return;
       }
@@ -126,9 +122,8 @@ User.updateById = (id, user, result) => {
 };
 
 User.remove = (id, result) => {
-  sql.query("DELETE FROM user WHERE id = ?", id, (err, res) => {
+  sql.query("DELETE FROM users WHERE user_id = ?", id, (err, res) => {
     if (err) {
-      console.log("error: ", err);
       result(null, err);
       return;
     }
@@ -138,7 +133,6 @@ User.remove = (id, result) => {
       return;
     }
 
-    console.log("deleted user with id: ", id);
     result(null, res);
   });
 };
