@@ -5,7 +5,12 @@ require("dotenv").config();
 
 // Create and Save a new User
 exports.create = (req, res) => {
-  if (!req.body) {
+  if (
+    !req.body ||
+    !req.body.email ||
+    !req.body.password ||
+    !req.body.fullname
+  ) {
     res.status(400).send({
       message: "Content can not be empty!!!",
     });
