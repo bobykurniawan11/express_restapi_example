@@ -2,12 +2,11 @@ const app = require("../app");
 
 const supertest = require("supertest");
 const request = supertest(app);
-let auth = {};
+const auth = {};
 
 describe("Phase 1 - USER", function () {
-  //Test start endpoint
   it("Enpoint test", async (done) => {
-    const response = await request.get("/");
+    let response = await request.get("/");
     expect(response.status).toBe(200);
     expect(response.body.message).toBe("IT IS WORKING.");
 
@@ -15,36 +14,35 @@ describe("Phase 1 - USER", function () {
   });
 
   it("Register test with no data", async (done) => {
-    const register_data = {};
-    const result = await request.post("/users").send(register_data);
+    let register_data = {};
+    let result = await request.post("/users").send(register_data);
     expect(result.status).toEqual(400);
     done();
   });
 
   it("Register test with invalid email", async (done) => {
-    const register_data = {
+    let register_data = {
       email: "mymail@emailcom",
       password: "password1234",
       fullname: "My Name Is",
     };
-    const result = await request.post("/users").send(register_data);
+    let result = await request.post("/users").send(register_data);
     expect(result.status).toEqual(400);
     done();
   });
 
-  //Register Test, user not exits
   it("Register test", async (done) => {
-    const register_data = {
+    let register_data = {
       email: "mymail@email.com",
       password: "password1234",
       fullname: "My Name Is",
     };
-    const result = await request.post("/users").send(register_data);
+    let result = await request.post("/users").send(register_data);
     expect(result.status).toEqual(200);
     done();
   });
 });
-//Change password need token, so need to login first
+
 describe("Phase 2 - USER", function () {
   var new_password = "1234567";
   var old_password = "password1234";
@@ -56,22 +54,22 @@ describe("Phase 2 - USER", function () {
 
   const change_password_data = {
     email: "mymail@email.com",
-    new_password: "12345",
+    new_password: new_password,
     password: old_password,
   };
 
   const new_login_data = {
     email: "mymail@email.com",
-    password: "12345",
+    password: new_password,
   };
 
   const update_data = {
-    fullname: "NAMA ASLI NIH",
+    fullname: "EDITED NAME",
   };
 
   beforeAll(async (done) => {
-    const result = await request.post("/users/login").send(login_data);
-    auth.token = result.body.token; //
+    let result = await request.post("/users/login").send(login_data);
+    auth.token = result.body.token;
     auth.user_id = result.body.user_id;
     done();
   });
@@ -92,8 +90,8 @@ describe("Phase 2 - USER", function () {
   });
 
   it("Change password with no data", async (done) => {
-    const data = {};
-    const result = await request
+    let data = {};
+    let result = await request
       .post("/users/change_password")
       .send(data)
       .set("Authorization", "Bearer " + auth.token);
@@ -102,7 +100,7 @@ describe("Phase 2 - USER", function () {
   });
 
   it("Change password", async (done) => {
-    const result = await request
+    let result = await request
       .post("/users/change_password")
       .send(change_password_data)
       .set("Authorization", "Bearer " + auth.token);
@@ -111,7 +109,7 @@ describe("Phase 2 - USER", function () {
   });
 
   it("Login After Change Password", async (done) => {
-    const result = await request.post("/users/login").send(new_login_data);
+    let result = await request.post("/users/login").send(new_login_data);
     auth.token = result.body.token;
     auth.user_id = result.body.user_id;
     done();
