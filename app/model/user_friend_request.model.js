@@ -25,7 +25,7 @@ UserFriendRequest.create = (user_friend_requests, result) => {
 
 UserFriendRequest.get_friend_request = (user_id, result) => {
   sql.query(
-    `SELECT a.user_id as request_from,b.fullname FROM user_friend_requests a inner join users b on a.user_id = b.user_id WHERE friend_id = "` +
+    `SELECT a.user_id as request_from,b.fullname FROM user_friend_requests a left join users b on a.user_id = b.user_id WHERE friend_id = "` +
       user_id +
       `"`,
     (err, res) => {
@@ -40,7 +40,7 @@ UserFriendRequest.get_friend_request = (user_id, result) => {
 
 UserFriendRequest.get_friend = (user_id, result) => {
   sql.query(
-    `SELECT a.user_id as request_from,b.fullname FROM user_friends a inner join users b on a.user_id = b.user_id WHERE friend_id = "` +
+    `SELECT a.user_id as request_from,b.fullname FROM user_friends a left join users b on a.user_id = b.user_id WHERE friend_id = "` +
       user_id +
       `"`,
     (err, res) => {
@@ -98,6 +98,25 @@ UserFriendRequest.accept_friend_request = (user_friend_requests, result) => {
       result(null, { friend_request_data: res[0] });
     }
   );
+};
+
+UserFriendRequest.delete_friend = (user_friend_requests, result) => {
+  sql.query(
+    `DELETE FROM user_friends where friend_id = "` +
+      user_friend_requests.friend_id +
+      `" and user_id = "` +
+      user_friend_requests.user_id +
+      `" `
+  );
+  sql.query(
+    `DELETE FROM user_friends where friend_id = "` +
+      user_friend_requests.friend_id +
+      `" and user_id = "` +
+      user_friend_requests.user_id +
+      `" `
+  );
+
+  result(null, { user_friend_requests });
 };
 
 module.exports = UserFriendRequest;

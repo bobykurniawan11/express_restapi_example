@@ -113,3 +113,27 @@ exports.get_friend = (req, res) => {
     } else res.send(data);
   });
 };
+
+exports.delete_friend = (req, res) => {
+  if (!req.body || !req.params.user_id) {
+    res.status(400).send({
+      message: "Content can not be empty!!!",
+    });
+    return;
+  }
+
+  UserFriendRequest.delete_friend(req.params.user_id, (err, data) => {
+    if (err) {
+      if (err.status_code != null) {
+        res.status(err.status_code).send({
+          message: err.message,
+        });
+      } else {
+        res.status(500).send({
+          message:
+            err.message || "Some error occurred while fetching friend request.",
+        });
+      }
+    } else res.send(data);
+  });
+};

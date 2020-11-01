@@ -40,6 +40,12 @@ app.get(
   user_friend_request.get_friend
 );
 
+app.delete(
+  "/user_friend/:user_id",
+  authenticateToken,
+  user_friend_request.delete_friend
+);
+
 app.post(
   "/accept_friend_request",
   authenticateToken,
